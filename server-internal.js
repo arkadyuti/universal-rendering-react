@@ -12,24 +12,26 @@ import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { combineReducers } from 'redux';
 
-const combinedReducers = combineReducers({}); 
 
-import fetchComponentData from './fetchComponentData.js';
+import rootReducer from './src/reducers/index.js';
 
 const finalCreateStore = applyMiddleware()( createStore );
 
 const app = express();
-// "url": "https://github.com/coodoo/react-redux-isomorphic-example"
-// const open = require('open');
-// open('http://localhost:7001');
+app.use('/', express.static(__dirname + '/static'));
 
-app.use('/', express.static(__dirname + '/dist'));
-
+const webpack = require('webpack')
+const webpackDevMiddleware = require('webpack-dev-middleware')
+const webpackHotMiddleware = require('webpack-hot-middleware')
+const config = require('./webpack.config.ssr')
+const compiler = webpack(config)
+app.use(webpackDevMiddleware(compiler, { noInfo: true, publicPath: "/static/" }))
+app.use(webpackHotMiddleware(compiler))
 
 app.use( ( req, res, next ) => {
-    const store = finalCreateStore(combinedReducers);
+	
+    const store = finalCreateStore(rootReducer);
 
-    // react-router
 	match( {routes, location: req.url}, ( error, redirectLocation, renderProps ) => {
 
 		if ( error )
@@ -39,13 +41,10 @@ app.use( ( req, res, next ) => {
 			return res.redirect( 302, redirectLocation.pathname + redirectLocation.search );
 
 		if ( renderProps == null ) {
-			// return next('err msg: route not found'); // yield control to next middleware to handle the request
 			return res.status(404).send( 'Not found' );
 		}
 
-		fetchComponentData( store.dispatch, renderProps.components, renderProps.params)
 
-		.then( () => {
 
 			const initView = renderToString((
 				<Provider store={store}>
@@ -53,21 +52,15 @@ app.use( ( req, res, next ) => {
 				</Provider>
 			))
 
-			// console.log('\ninitView:\n', initView);
 
 			let state = JSON.stringify( store.getState() );
-			// console.log( '\nstate: ', state )
 
 			let page = renderFullPage( initView, state )
-			// console.log( '\npage:\n', page );
+			res.status(200).send(page)
+			
 
-			return page;
 
-		})
 
-		.then( page => res.status(200).send(page) )
-
-		.catch( err => res.end(err.message) );
 	})
 
     
@@ -83,24 +76,18 @@ function renderFullPage(html, initialState) {
 		<link rel="stylesheet" href="/assets/css/uikit.almost-flat.min.css">
 	  </head>
 	  <body>
-	  <div class="container">${html}</div>
+	  <div class="container" id="app-root">${html}</div>
 		<script>window.$REDUX_STATE = ${initialState}</script>
-		<script src="/js/bundle.js"></script>
+		<script src="/static/bundle.js"></script>
 	  </body>
 	</html>
 	`
 }
 
-// app.get('*', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'dist/index.html'));
-// });
-
-// example of handling 404 pages
 app.get('*', function(req, res) {
 	res.status(404).send('Server.js > 404 - Page Not Found');
 })
 
-// global error catcher, need four arguments
 app.use((err, req, res, next) => {
   console.error("Error on request %s %s", req.method, req.url);
   console.error(err.stack);

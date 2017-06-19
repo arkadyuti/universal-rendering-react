@@ -14,10 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "axios": "*",
+    "babel-preset-react-hmre": "^1.1.1",
     "classnames": "^2.2.5",
     "react": "^15.x.x",
     "react-dom": "^15.x.x",
     "react-redux": "^5.x.x",
+    "react-router": "^2.3.0",
     "react-router-dom": "^4.1.1",
     "redux": "^3.x.x",
     "redux-logger": "*",
@@ -42,6 +44,7 @@
     "style-loader": "*",
     "stylelint-webpack-plugin": "*",
     "webpack": "^2.x.x",
+    "webpack-dev-middleware": "^1.10.2",
     "webpack-dev-server": "^2.x.x",
     "webpack-hot-middleware": "*"
   }

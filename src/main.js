@@ -7,9 +7,17 @@ import configureStore from './store/configureStore';
 
 import Maincomponent from './containers/main-container.js';
 
-const store=configureStore();
+let state = null;
+if ( window.$REDUX_STATE ) {
+
+	// 解開 server 預先傳來的資料包，稍後會放入 store 成為 initState
+	state = window.$REDUX_STATE;
+}
+
+const store=configureStore(state);
 
 render(
+	<Provider store={store}>
 	<BrowserRouter>
 		<div>
 			<Route exact={true} path="/" render = {() => (
@@ -19,12 +27,8 @@ render(
 				</div>
 					
 			)} />
-			<Route path="/dummy" render = {() => (
-					<Provider store={store}>
-						<Maincomponent/>
-					</Provider>
-			)}/>
 		</div>
-	</BrowserRouter>,
+	</BrowserRouter>
+	</Provider>,
 	document.getElementById('app-root')
 	);
