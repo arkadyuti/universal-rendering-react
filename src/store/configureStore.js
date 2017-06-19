@@ -8,10 +8,20 @@ import thunk from 'redux-thunk';
 // )(createStore);
 const logger = createLogger();
 export default function configureStore(initialState={}) {
+  const enhancers = [
+    applyMiddleware(thunk,logger)
+  ];
+
+  const composeEnhancers =
+  process.env.NODE_ENV !== 'production' &&
+  typeof window === 'object' &&
+  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : compose;
+
   const store = createStore(
           rootReducer,
           initialState,
-          compose(applyMiddleware(thunk,logger))
+           composeEnhancers(...enhancers)
           );
 
   if (module.hot) {
